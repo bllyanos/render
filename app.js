@@ -117,6 +117,13 @@ hbs.registerHelper('tagColor', function(tag) {
     return pinColors[index];
 });
 
+hbs.registerHelper('ifeq', function(a, b, options) {
+    if (a === b) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
+});
+
 // Middleware to set base URL for OG tags
 app.use((req, res, next) => {
     const protocol = req.get('x-forwarded-proto') || req.protocol;
@@ -146,10 +153,49 @@ function getPages() {
                 title: data.title || file,
                 description: data.description || '',
                 date: data.date ? new Date(data.date).toLocaleDateString() : 'N/A',
+                rawDate: data.date || null, // Keep raw date for sorting
+                priority: typeof data.priority === 'number' ? data.priority : 0,
                 tags: data.tags || [],
                 rawContent: content // for searching
             };
         });
+}
+
+// Multi-level sorting: Priority first, then chosen sort method
+function sortPages(pages, sortType = 'date_desc') {
+    return pages.sort((a, b) => {
+        // Level 1: Always sort by priority first (higher priority = top)
+        if (a.priority !== b.priority) {
+            return b.priority - a.priority;
+        }
+
+        // Level 2: Apply the chosen sort method
+        switch (sortType) {
+            case 'date_desc': // Newest first
+                if (!a.rawDate && !b.rawDate) return 0;
+                if (!a.rawDate) return 1;
+                if (!b.rawDate) return -1;
+                return new Date(b.rawDate) - new Date(a.rawDate);
+            
+            case 'date_asc': // Oldest first
+                if (!a.rawDate && !b.rawDate) return 0;
+                if (!a.rawDate) return 1;
+                if (!b.rawDate) return -1;
+                return new Date(a.rawDate) - new Date(b.rawDate);
+            
+            case 'title_asc': // A-Z
+                return a.title.localeCompare(b.title);
+            
+            case 'title_desc': // Z-A
+                return b.title.localeCompare(a.title);
+            
+            default: // Default to newest first
+                if (!a.rawDate && !b.rawDate) return 0;
+                if (!a.rawDate) return 1;
+                if (!b.rawDate) return -1;
+                return new Date(b.rawDate) - new Date(a.rawDate);
+        }
+    });
 }
 
 // Admin Routes
@@ -196,6 +242,7 @@ app.post('/__admin/cache/clear-pages', async (req, res) => {
 // Dashboard Route
 app.get('/', async (req, res) => {
     const query = req.query.q ? req.query.q.toLowerCase() : '';
+    const sortType = req.query.sort || 'date_desc';
     let pages;
 
     try {
@@ -221,11 +268,14 @@ app.get('/', async (req, res) => {
         );
     }
 
+    // Apply sorting (priority first, then chosen method)
+    pages = sortPages(pages, sortType);
 
     res.render('index', {
         title: 'Dashboard',
         pages,
         query: req.query.q,
+        sortType,
         baseUrl: req.baseUrl,
         ogUrl: req.baseUrl,
         ogImage: `${req.baseUrl}/og-main.png`,
