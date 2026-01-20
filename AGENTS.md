@@ -46,3 +46,7 @@ render/
     - Verify the dashboard lists files.
     - Verify search functionality works via `?q=`.
     - Verify markdown rendering and styling.
+
+## Available Skills
+- **pages-backup**: Backup the pages directory into a timestamped ZIP file.
+- **pages-restore**: Restore the pages directory from a previously created ZIP backup.

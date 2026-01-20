@@ -34,3 +34,6 @@ Thumbs.db
 
 pages/*
 !pages/.keep
+
+# Backups
+backups/
