@@ -176,15 +176,15 @@ app.post('/__admin/cache/clear-index', async (req, res) => {
 app.post('/__admin/cache/clear-pages', async (req, res) => {
     try {
         // Scan for all page keys
-        let cursor = 0;
+        let cursor = '0';
         do {
             const reply = await redisClient.scan(cursor, { MATCH: 'render:page:*', COUNT: 100 });
-            cursor = reply.cursor;
+            cursor = reply.cursor.toString();
             const keys = reply.keys;
             if (keys.length > 0) {
                 await redisClient.del(keys);
             }
-        } while (cursor !== 0);
+        } while (cursor !== '0');
         
         res.redirect('/__admin/cache');
     } catch (err) {

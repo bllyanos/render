@@ -27,18 +27,18 @@ async function clearCache() {
     }
 
     // 2. Clear Pages Cache
-    let cursor = 0;
+    let cursor = '0';
     let pagesCleared = 0;
     do {
       const reply = await client.scan(cursor, { MATCH: 'render:page:*', COUNT: 100 });
-      cursor = reply.cursor;
+      cursor = reply.cursor.toString();
       const keys = reply.keys;
       
       if (keys.length > 0) {
         const deletedCount = await client.del(keys);
         pagesCleared += deletedCount;
       }
-    } while (cursor !== 0);
+    } while (cursor !== '0');
 
     console.log(`🗑️  Cleared ${pagesCleared} page(s) from cache.`);
     console.log('✨ All caches cleared successfully.');
