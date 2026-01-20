@@ -88,7 +88,10 @@ app.get('/:slug', (req, res) => {
 
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const { data, content } = matter(fileContent);
-    const htmlContent = marked.parse(content);
+    let htmlContent = marked.parse(content);
+
+    // Wrap tables in a div for horizontal scrolling
+    htmlContent = htmlContent.replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
 
     res.render('page', {
         title: data.title || slug,
