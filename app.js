@@ -10,7 +10,7 @@ const satori = require('satori').default;
 const { Resvg } = require('@resvg/resvg-js');
 
 const app = express();
-const port = 9901;
+const port = process.env.PORT || 9901;
 
 // Load font for OG images
 const fontPath = path.join(__dirname, 'public/fonts/JetBrainsMono-Bold.ttf');
