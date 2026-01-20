@@ -76,6 +76,7 @@ app.use((req, res, next) => {
 });
 
 // Static files
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/hljs', express.static(path.join(__dirname, 'node_modules/highlight.js')));
 
 const PAGES_DIR = path.join(__dirname, 'pages');
