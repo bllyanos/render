@@ -16,11 +16,14 @@
                         <h2 class="text-xl mb-1 group-hover:text-teal-700 dark:group-hover:text-teal-400">
                             <a href="/{{slug}}" class="no-underline">{{title}}</a>
                         </h2>
+                        {{#if description}}
+                            <p class="text-sm mb-3 opacity-80">{{description}}</p>
+                        {{/if}}
                         <div class="flex items-center gap-2">
-                             <span class="meta-tag bg-white dark:bg-stone-800 text-[10px]">Markdown</span>
+                             <span class="meta-tag bg-white dark:bg-stone-800 text-[10px]">Doc</span>
                              {{#if tags}}
                                 {{#each tags}}
-                                    <span class="meta-tag bg-white dark:bg-stone-800 text-[10px]">{{this}}</span>
+                                    <span class="meta-tag {{tagColor this}} text-[10px]">{{this}}</span>
                                 {{/each}}
                              {{/if}}
                         </div>

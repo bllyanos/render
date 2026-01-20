@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}} - Render</title>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ogUrl}}">
+    <meta property="og:title" content="{{title}} - Render">
+    {{#if description}}
+    <meta property="og:description" content="{{description}}">
+    {{/if}}
+    <meta property="og:image" content="{{ogImage}}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ogUrl}}">
+    <meta property="twitter:title" content="{{title}} - Render">
+    {{#if description}}
+    <meta property="twitter:description" content="{{description}}">
+    {{/if}}
+    <meta property="twitter:image" content="{{ogImage}}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -70,7 +89,20 @@
             border-radius: var(--radius-md);
             display: inline-block;
             margin-right: 0.5rem;
+            box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
         }
+
+        @media (prefers-color-scheme: dark) {
+            .meta-tag {
+                box-shadow: 2px 2px 0px 0px rgba(255,255,255,0.1);
+            }
+        }
+
+        .pin-teal { background-color: #2dd4bf !important; color: #000 !important; }
+        .pin-orange { background-color: #fb923c !important; color: #000 !important; }
+        .pin-lime { background-color: #bef264 !important; color: #000 !important; }
+        .pin-yellow { background-color: #fde047 !important; color: #000 !important; }
+        .pin-pink { background-color: #f472b6 !important; color: #000 !important; }
 
         /* Markdown styling */
         .markdown-content h1 { font-size: 2.25rem; margin-bottom: 1.5rem; line-height: 1.2; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
