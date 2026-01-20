@@ -1,17 +1,42 @@
-<h1>Dashboard</h1>
-{{#if query}}
-    <p>Search results for: "<strong>{{query}}</strong>"</p>
-{{/if}}
+<div class="mb-8">
+    <h1 class="text-4xl mb-2">Dashboard</h1>
+    {{#if query}}
+        <p class="text-sm opacity-75">Showing results for <span class="meta-tag bg-stone-200 dark:bg-stone-800 ml-1">{{query}}</span></p>
+    {{else}}
+        <p class="text-sm opacity-75">All pages and documents</p>
+    {{/if}}
+</div>
 
-{{#if pages.length}}
-    <ul>
+<div class="space-y-4">
+    {{#if pages.length}}
         {{#each pages}}
-            <li>
-                <a href="/{{slug}}">{{title}}</a>
-                <small>({{date}})</small>
-            </li>
+            <div class="content-box hover:translate-x-1 hover:-translate-y-1 transition-transform group">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl mb-1 group-hover:text-teal-700 dark:group-hover:text-teal-400">
+                            <a href="/{{slug}}" class="no-underline">{{title}}</a>
+                        </h2>
+                        <div class="flex items-center gap-2">
+                             <span class="meta-tag bg-white dark:bg-stone-800 text-[10px]">Markdown</span>
+                             {{#if tags}}
+                                {{#each tags}}
+                                    <span class="meta-tag bg-white dark:bg-stone-800 text-[10px]">{{this}}</span>
+                                {{/each}}
+                             {{/if}}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-bold opacity-50">
+                        <i data-lucide="calendar" class="w-3 h-3"></i>
+                        {{date}}
+                    </div>
+                </div>
+            </div>
         {{/each}}
-    </ul>
-{{else}}
-    <p>No pages found.</p>
-{{/if}}
+    {{else}}
+        <div class="content-box text-center py-12 opacity-50">
+            <i data-lucide="file-warning" class="w-12 h-12 mx-auto mb-4"></i>
+            <p>No pages found matching your criteria.</p>
+            <a href="/" class="text-sm underline">Clear search</a>
+        </div>
+    {{/if}}
+</div>

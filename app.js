@@ -16,7 +16,12 @@ const marked = new Marked(
     langPrefix: 'hljs language-',
     highlight(code, lang) {
       const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      return hljs.highlight(code, { language }).value;
+      try {
+        return hljs.highlight(code, { language }).value;
+      } catch (err) {
+        console.error('Highlight error:', err);
+        return code;
+      }
     }
   })
 );
@@ -26,7 +31,6 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Static files
-app.use('/css', express.static(path.join(__dirname, 'node_modules/github-markdown-css')));
 app.use('/hljs', express.static(path.join(__dirname, 'node_modules/highlight.js')));
 
 const PAGES_DIR = path.join(__dirname, 'pages');
@@ -45,6 +49,7 @@ function getPages() {
                 slug: file.replace('.md', ''),
                 title: data.title || file,
                 date: data.date ? new Date(data.date).toLocaleDateString() : 'N/A',
+                tags: data.tags || [],
                 rawContent: content // for searching
             };
         });
