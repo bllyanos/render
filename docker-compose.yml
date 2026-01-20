@@ -1,0 +1,9 @@
+services:
+  render:
+    build: .
+    ports:
+      - "9901:9901"
+    volumes:
+      - ./pages:/app/pages
+    environment:
+      - NODE_ENV=production

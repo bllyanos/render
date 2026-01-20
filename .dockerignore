@@ -1,0 +1,18 @@
+# Build context exclusions
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+.vscode/
+
+# Content
+pages/
+
+# Environment variables
+.env
+.env.*
