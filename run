@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+  echo "Usage: ./run [--build] [--down] <service1> [service2] ..."
+  exit 1
+fi
+
+BUILD_FLAG=""
+DOWN_FLAG=false
+SERVICES=()
+
+for arg in "$@"; do
+  if [ "$arg" == "--build" ]; then
+    BUILD_FLAG="--build"
+  elif [ "$arg" == "--down" ]; then
+    DOWN_FLAG=true
+  else
+    SERVICES+=("$arg")
+  fi
+done
+
+if [ ${#SERVICES[@]} -eq 0 ]; then
+  echo "Error: No services specified."
+  echo "Usage: ./run [--build] [--down] <service1> [service2] ..."
+  exit 1
+fi
+
+echo "🔄 Running services: ${SERVICES[*]}"
+
+if [ "$DOWN_FLAG" = true ]; then
+  echo "Stopping..."
+  docker compose down
+fi
+
+# Start them up again
+echo "Starting..."
+docker compose up -d $BUILD_FLAG "${SERVICES[@]}"
+
+echo "✅ Done!"

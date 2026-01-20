@@ -5,8 +5,19 @@ services:
       - ./pages:/app/pages
     environment:
       - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - ADMIN_USER=admin
+      - ADMIN_PASS=password
+    depends_on:
+      - redis
     deploy:
       replicas: 3
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    restart: always
 
   nginx:
     image: nginx:alpine

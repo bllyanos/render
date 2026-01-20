@@ -8,9 +8,36 @@ const hljs = require('highlight.js');
 const matter = require('gray-matter');
 const satori = require('satori').default;
 const { Resvg } = require('@resvg/resvg-js');
+const { createClient } = require('redis');
+const basicAuth = require('express-basic-auth');
 
 const app = express();
 const port = process.env.PORT || 9901;
+
+// Redis Setup
+const redisClient = createClient({
+    url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+
+(async () => {
+    try {
+        await redisClient.connect();
+        console.log('Connected to Redis');
+    } catch (err) {
+        console.error('Failed to connect to Redis', err);
+    }
+})();
+
+// Admin Auth Middleware
+const adminAuth = basicAuth({
+    users: {
+        [process.env.ADMIN_USER || 'admin']: process.env.ADMIN_PASS || 'password'
+    },
+    challenge: true,
+    realm: 'RenderAdmin'
+});
 
 // Load font for OG images
 const fontPath = path.join(__dirname, 'public/fonts/JetBrainsMono-Bold.ttf');
@@ -102,10 +129,67 @@ function getPages() {
         });
 }
 
+// Admin Routes
+app.use('/__admin', adminAuth);
+
+app.get('/__admin/cache', (req, res) => {
+    res.render('admin-cache', {
+        title: 'Cache Admin',
+        baseUrl: req.baseUrl,
+        ogUrl: `${req.baseUrl}/__admin/cache`,
+        description: 'Manage application cache'
+    });
+});
+
+app.post('/__admin/cache/clear-index', async (req, res) => {
+    try {
+        await redisClient.del('render:index');
+        res.redirect('/__admin/cache');
+    } catch (err) {
+        res.status(500).send('Error clearing cache: ' + err.message);
+    }
+});
+
+app.post('/__admin/cache/clear-pages', async (req, res) => {
+    try {
+        // Scan for all page keys
+        let cursor = 0;
+        do {
+            const reply = await redisClient.scan(cursor, { MATCH: 'render:page:*', COUNT: 100 });
+            cursor = reply.cursor;
+            const keys = reply.keys;
+            if (keys.length > 0) {
+                await redisClient.del(keys);
+            }
+        } while (cursor !== 0);
+        
+        res.redirect('/__admin/cache');
+    } catch (err) {
+        res.status(500).send('Error clearing cache: ' + err.message);
+    }
+});
+
+
 // Dashboard Route
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
     const query = req.query.q ? req.query.q.toLowerCase() : '';
-    let pages = getPages();
+    let pages;
+
+    try {
+        const cachedIndex = await redisClient.get('render:index');
+        if (cachedIndex) {
+            console.log('Cache hit for index');
+            pages = JSON.parse(cachedIndex);
+        } else {
+            console.log('Cache miss for index');
+            pages = getPages();
+            // Cache for 1 hour
+            await redisClient.set('render:index', JSON.stringify(pages), { EX: 3600 });
+        }
+    } catch (err) {
+        console.error('Redis error:', err);
+        pages = getPages();
+    }
 
     if (query) {
         pages = pages.filter(page => 
@@ -113,6 +197,7 @@ app.get('/', (req, res) => {
             page.rawContent.toLowerCase().includes(query)
         );
     }
+
 
     res.render('index', {
         title: 'Dashboard',
@@ -393,8 +478,21 @@ app.get('/:slug/og.png', async (req, res) => {
     }
 });
 // Page Route
-app.get('/:slug', (req, res) => {
+app.get('/:slug', async (req, res) => {
     const slug = req.params.slug;
+    
+    // Try cache first
+    try {
+        const cachedPage = await redisClient.get(`render:page:${slug}`);
+        if (cachedPage) {
+            console.log(`Cache hit for page: ${slug}`);
+            return res.send(cachedPage);
+        }
+        console.log(`Cache miss for page: ${slug}`);
+    } catch (err) {
+        console.error('Redis error:', err);
+    }
+
     const filePath = path.join(PAGES_DIR, `${slug}.md`);
 
     if (!fs.existsSync(filePath)) {
@@ -420,8 +518,22 @@ app.get('/:slug', (req, res) => {
         baseUrl: req.baseUrl,
         ogUrl: `${req.baseUrl}/${slug}`,
         ogImage: `${req.baseUrl}/${slug}/og.png`
+    }, async (err, html) => {
+        if (err) {
+            return res.status(500).send('Error rendering page');
+        }
+        
+        try {
+            // Cache for 24 hours
+            await redisClient.set(`render:page:${slug}`, html, { EX: 86400 });
+        } catch (cacheErr) {
+            console.error('Failed to cache page:', cacheErr);
+        }
+        
+        res.send(html);
     });
 });
+
 
 app.listen(port, () => {
     console.log(`Render app listening at http://localhost:${port}`);
