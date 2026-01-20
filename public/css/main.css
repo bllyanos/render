@@ -55,6 +55,10 @@ h1, h2, h3 {
     margin: 1.5rem 0;
 }
 
+.content-box h2 {
+    font-weight: 800;
+}
+
 .border-main {
     border-color: var(--border-color) !important;
 }
