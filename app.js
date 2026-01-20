@@ -109,6 +109,9 @@ app.get('/:slug', (req, res) => {
 
     res.render('page', {
         title: data.title || slug,
+        date: data.date ? new Date(data.date).toLocaleDateString() : null,
+        tags: data.tags || [],
+        description: data.description || null,
         content: htmlContent
     });
 });

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Testing in Rails 8.1 - Render</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            scroll-behavior: smooth;
+            --bg-page: #fafaf9; /* stone-50 */
+            --bg-surface: #f5f5f4; /* stone-100 */
+            --border-color: #292524; /* stone-800 */
+            --text-primary: #0f766e; /* teal-700 */
+            --text-secondary: #c2410c; /* orange-700 */
+            --text-accent: #3f6212; /* lime-800 */
+            --shadow-primary: 4px 4px 0px 0px rgba(0,0,0,1);
+            --radius-md: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #0c0a09; /* stone-950 */
+                --bg-surface: #1c1917; /* stone-900 */
+                --border-color: #d6d3d1; /* stone-300 */
+                --text-primary: #2dd4bf; /* teal-400 */
+                --text-secondary: #fb923c; /* orange-400 */
+                --text-accent: #bef264; /* lime-300 */
+                --shadow-primary: 4px 4px 0px 0px rgba(255,255,255,0.1);
+            }
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-page);
+            color: #1c1917;
+            line-height: 1.7;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: #d6d3d1;
+            }
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .content-box {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-surface);
+            box-shadow: var(--shadow-primary);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .meta-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        /* Markdown styling */
+        .markdown-content h1 { font-size: 2.25rem; margin-bottom: 1.5rem; line-height: 1.2; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+        .markdown-content h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+        .markdown-content h3 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-content p { margin-bottom: 1.5rem; }
+        .markdown-content ul, .markdown-content ol { margin-bottom: 1.5rem; padding-left: 1.5rem; }
+        .markdown-content ul { list-style-type: disc; }
+        .markdown-content ol { list-style-type: decimal; }
+        .markdown-content li { margin-bottom: 0.5rem; }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid var(--text-primary);
+            padding-left: 1rem;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .markdown-content img {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-primary);
+            margin: 2rem 0;
+        }
+        
+        .markdown-content a {
+            color: var(--text-primary);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 2px;
+        }
+        
+        .markdown-content a:hover {
+            background-color: var(--text-primary);
+            color: var(--bg-page);
+            text-decoration: none;
+        }
+
+        .markdown-content .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 2.5rem;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            box-shadow: var(--shadow-primary);
+        }
+
+        .markdown-content table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: var(--bg-surface);
+        }
+
+        .markdown-content th, .markdown-content td {
+            padding: 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .markdown-content th {
+            background-color: var(--text-primary);
+            color: var(--bg-page);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+        }
+
+        .markdown-content td {
+            font-size: 0.95rem;
+        }
+
+        .markdown-content tr:last-child td {
+            border-bottom: none;
+        }
+
+        .markdown-content td:last-child, .markdown-content th:last-child {
+            border-right: none;
+        }
+
+        .markdown-content tr:nth-child(even) td {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .markdown-content tr:hover td {
+            background-color: rgba(15, 118, 110, 0.05); /* text-primary with low opacity */
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .markdown-content tr:nth-child(even) td {
+                background-color: rgba(255,255,255,0.02);
+            }
+            .markdown-content tr:hover td {
+                background-color: rgba(45, 212, 191, 0.05); /* text-primary dark with low opacity */
+            }
+            .markdown-content th {
+                color: #000;
+            }
+        }
+
+        .markdown-content pre {
+            background-color: #1b1d2b; /* Match Tokyo Night Dark background */
+            color: #ffffff;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-primary);
+        }
+
+        .hljs {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        .markdown-content code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .markdown-content :not(pre) > code {
+            font-weight: 700;
+            color: var(--text-secondary);
+            background: rgba(0,0,0,0.05);
+            padding: 0.1em 0.3em;
+            border-radius: 0.2em;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .markdown-content :not(pre) > code {
+                background: rgba(255,255,255,0.1);
+            }
+        }
+
+        .search-input {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-surface);
+            padding: 0.5rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: var(--shadow-primary);
+            transform: translate(-2px, -2px);
+        }
+
+        /* Heading links */
+        .heading-link {
+            color: inherit !important;
+            text-decoration: none !important;
+            display: block;
+            position: relative;
+        }
+
+        .heading-link:hover {
+            text-decoration: underline !important;
+            background-color: transparent !important;
+        }
+
+        .anchor-icon {
+            position: absolute;
+            right: 100%;
+            padding-right: 0.5rem;
+            color: var(--text-primary);
+            opacity: 0;
+            font-weight: normal;
+            transition: opacity 0.2s;
+        }
+
+        h1:hover .anchor-icon,
+        h2:hover .anchor-icon,
+        h3:hover .anchor-icon,
+        h4:hover .anchor-icon,
+        h5:hover .anchor-icon,
+        h6:hover .anchor-icon {
+            opacity: 0.4;
+        }
+
+        .anchor-icon:hover {
+            opacity: 1 !important;
+        }
+
+        @media (max-width: 768px) {
+            .anchor-icon {
+                position: static;
+                opacity: 0.2;
+                margin-right: 0.5rem;
+            }
+            .heading-link {
+                display: flex;
+                align-items: baseline;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/hljs/styles/tokyo-night-dark.css">
+</head>
+<body class="p-4 md:p-12">
+
+    <article class="max-w-3xl mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-10 pb-6 border-b-2 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <a href="/" class="text-2xl font-bold no-underline hover:text-teal-700 dark:hover:text-teal-400 transition-colors flex items-center gap-2">
+                    <i data-lucide="box" class="w-8 h-8"></i>
+                    RENDER
+                </a>
+            </div>
+            <div class="w-full md:w-64">
+                <form action="/" method="GET">
+                    <div class="relative">
+                        <input type="text" name="q" placeholder="Search..." value="" class="search-input text-sm">
+                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <i data-lucide="search" class="w-4 h-4 opacity-50"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <header class="mb-10 pb-10 border-b-2 border-black">
+    <div class="mb-4 flex flex-wrap gap-2">
+                <span class="meta-tag bg-white dark:bg-stone-800">Ruby on Rails</span>
+                <span class="meta-tag bg-white dark:bg-stone-800">Testing</span>
+                <span class="meta-tag bg-white dark:bg-stone-800">Minitest</span>
+                <span class="meta-tag bg-white dark:bg-stone-800">Backend</span>
+    </div>
+    <h1 class="text-4xl md:text-5xl mb-4 leading-tight font-bold">
+        Unit Testing in Rails 8.1
+    </h1>
+        <p class="text-xl opacity-75 font-normal">
+            Explore the latest testing features in Rails 8.1 and learn how to build a robust, high-performance test suite.
+        </p>
+        <div class="mt-4 flex items-center gap-2 text-xs font-bold opacity-50 uppercase tracking-widest">
+            <i data-lucide="calendar" class="w-3 h-3"></i>
+            Published on 1/20/2026
+        </div>
+</header>
+
+<div class="markdown-content">
+    <h1 id="unit-testing-in-rails-81-a-practical-guide"><a class="heading-link" href="#unit-testing-in-rails-81-a-practical-guide"><span class="anchor-icon">#</span>Unit Testing in Rails 8.1: A Practical Guide</a></h1>
+<p>Rails 8.1 continues the tradition of making testing a first-class citizen. Whether you are building a small side project or a massive enterprise application, Rails provides the tools you need to ensure your code works as expected.</p>
+<h2 id="1-why-minitest"><a class="heading-link" href="#1-why-minitest"><span class="anchor-icon">#</span>1. Why Minitest?</a></h2>
+<p>While many in the Ruby community use RSpec, Rails remains committed to <strong>Minitest</strong> by default. Minitest is fast, simple, and follows the &quot;Ruby way&quot; of using plain old Ruby objects and methods. In Rails 8.1, Minitest integrations are tighter than ever, with improved parallelization and cleaner output.</p>
+<h2 id="2-setting-up-your-test"><a class="heading-link" href="#2-setting-up-your-test"><span class="anchor-icon">#</span>2. Setting Up Your Test</a></h2>
+<p>When you generate a model in Rails, a test file is automatically created for you.</p>
+<pre><code class="hljs language-bash">bin/rails generate model Article title:string body:text
+</code></pre><p>This creates <code>test/models/article_test.rb</code>. A simple unit test looks like this:</p>
+<pre><code class="hljs language-ruby"><span class="hljs-keyword">require</span> <span class="hljs-string">&quot;test_helper&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ArticleTest</span> &lt; <span class="hljs-title class_ inherited__">ActiveSupport::TestCase</span>
+  test <span class="hljs-string">&quot;should not save article without title&quot;</span> <span class="hljs-keyword">do</span>
+    article = <span class="hljs-title class_">Article</span>.new(<span class="hljs-symbol">body:</span> <span class="hljs-string">&quot;Learn to test!&quot;</span>)
+    assert_not article.save, <span class="hljs-string">&quot;Saved the article without a title&quot;</span>
+  <span class="hljs-keyword">end</span>
+
+  test <span class="hljs-string">&quot;should save article with valid attributes&quot;</span> <span class="hljs-keyword">do</span>
+    article = <span class="hljs-title class_">Article</span>.new(<span class="hljs-symbol">title:</span> <span class="hljs-string">&quot;Rails Testing&quot;</span>, <span class="hljs-symbol">body:</span> <span class="hljs-string">&quot;Content goes here.&quot;</span>)
+    assert article.save
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre><h2 id="3-common-assertions"><a class="heading-link" href="#3-common-assertions"><span class="anchor-icon">#</span>3. Common Assertions</a></h2>
+<p>Rails extends Minitest with specific assertions that make testing web applications easier.</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th align="left">Assertion</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>assert(test)</code></td>
+<td align="left">Ensures <code>test</code> is truthy.</td>
+</tr>
+<tr>
+<td align="left"><code>assert_not(test)</code></td>
+<td align="left">Ensures <code>test</code> is falsy.</td>
+</tr>
+<tr>
+<td align="left"><code>assert_equal(exp, act)</code></td>
+<td align="left">Ensures <code>exp == act</code>.</td>
+</tr>
+<tr>
+<td align="left"><code>assert_difference(expr, count)</code></td>
+<td align="left">Ensures the result of <code>expr</code> changes by <code>count</code>.</td>
+</tr>
+<tr>
+<td align="left"><code>assert_no_difference(expr)</code></td>
+<td align="left">Ensures the result of <code>expr</code> does not change.</td>
+</tr>
+</tbody></table></div>
+<h2 id="4-testing-model-validations"><a class="heading-link" href="#4-testing-model-validations"><span class="anchor-icon">#</span>4. Testing Model Validations</a></h2>
+<p>One of the most common uses for unit tests is verifying that your data stays clean.</p>
+<pre><code class="hljs language-ruby">test <span class="hljs-string">&quot;title should be unique&quot;</span> <span class="hljs-keyword">do</span>
+  duplicate_article = <span class="hljs-variable">@article</span>.dup
+  <span class="hljs-variable">@article</span>.save
+  assert_not duplicate_article.valid?
+<span class="hljs-keyword">end</span>
+</code></pre><h2 id="5-fixtures-better-than-factories"><a class="heading-link" href="#5-fixtures-better-than-factories"><span class="anchor-icon">#</span>5. Fixtures: Better Than Factories?</a></h2>
+<p>Rails 8.1 encourages the use of <strong>Fixtures</strong>. Unlike factories (like FactoryBot), which build objects in memory at runtime, fixtures are loaded directly into the database before the test suite runs. This makes tests incredibly fast.</p>
+<p><code>test/fixtures/articles.yml</code>:</p>
+<pre><code class="hljs language-yaml"><span class="hljs-attr">one:</span>
+  <span class="hljs-attr">title:</span> <span class="hljs-string">&quot;My First Article&quot;</span>
+  <span class="hljs-attr">body:</span> <span class="hljs-string">&quot;The beginning of a journey.&quot;</span>
+
+<span class="hljs-attr">two:</span>
+  <span class="hljs-attr">title:</span> <span class="hljs-string">&quot;Advanced Testing&quot;</span>
+  <span class="hljs-attr">body:</span> <span class="hljs-string">&quot;Deep dive into Rails 8.1.&quot;</span>
+</code></pre><p>In your test:</p>
+<pre><code class="hljs language-ruby">test <span class="hljs-string">&quot;finds article via fixture&quot;</span> <span class="hljs-keyword">do</span>
+  assert_equal <span class="hljs-string">&quot;My First Article&quot;</span>, articles(<span class="hljs-symbol">:one</span>).title
+<span class="hljs-keyword">end</span>
+</code></pre><h2 id="6-whats-new-in-81"><a class="heading-link" href="#6-whats-new-in-81"><span class="anchor-icon">#</span>6. What&#39;s New in 8.1?</a></h2>
+<p>Rails 8.1 introduces <strong>Atomic Testing Blocks</strong>, allowing you to isolate database transactions even more granularly within a single test method, and <strong>Enhanced Coverage Reports</strong> built directly into the <code>bin/rails test</code> command.</p>
+<h2 id="7-running-your-tests"><a class="heading-link" href="#7-running-your-tests"><span class="anchor-icon">#</span>7. Running Your Tests</a></h2>
+<p>Run everything with one command:</p>
+<pre><code class="hljs language-bash">bin/rails <span class="hljs-built_in">test</span>
+</code></pre><p>Or run a specific file:</p>
+<pre><code class="hljs language-bash">bin/rails <span class="hljs-built_in">test</span> <span class="hljs-built_in">test</span>/models/article_test.rb
+</code></pre><h2 id="summary"><a class="heading-link" href="#summary"><span class="anchor-icon">#</span>Summary</a></h2>
+<p>Testing in Rails 8.1 is about speed and reliability. By sticking to the defaults and leveraging the built-in tooling, you can build a robust suite that gives you the confidence to refactor and ship fast.</p>
+<p>Happy Testing!</p>
+
+</div>
+
+<footer class="mt-12 pt-8 border-t-2 border-black flex justify-between items-center opacity-60">
+    <a href="/" class="text-xs font-bold uppercase tracking-widest flex items-center gap-2 no-underline hover:text-teal-700">
+        <i data-lucide="arrow-left" class="w-3 h-3"></i>
+        Back to Dashboard
+    </a>
+</footer>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-16 pt-8 border-t-2 border-black flex justify-between items-center opacity-60">
+            <div class="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                <i data-lucide="cpu" class="w-3 h-3"></i>
+                Render Engine v1.0
+            </div>
+            <div class="text-xs font-bold uppercase tracking-widest">
+                2026
+            </div>
+        </footer>
+
+    </article>
+
+    <script>
+        lucide.createIcons({
+            attrs: {
+                'stroke-width': 2
+            }
+        });
+    </script>
+</body>
+</html>
