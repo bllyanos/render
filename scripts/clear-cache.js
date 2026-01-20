@@ -1,4 +1,7 @@
-const { createClient } = require('redis');
+import { createClient } from 'redis';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
 
 async function clearCache() {
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -49,11 +52,11 @@ async function clearCache() {
   }
 }
 
-if (require.main === module) {
+if (process.argv[1] === __filename) {
   clearCache().catch(err => {
     console.error('❌ Script execution failed:', err);
     process.exit(1);
   });
 }
 
-module.exports = clearCache;
+export default clearCache;

@@ -2,17 +2,20 @@
   "name": "render",
   "version": "1.0.0",
   "description": "Render is a lightweight Node.js application designed to serve and display Markdown files with a clean, GitHub-inspired aesthetic. It features a dynamic dashboard and full-text search capabilities.",
-  "main": "index.js",
+  "main": "app.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "concurrently \"nodemon app.js\" \"vite build --watch\"",
+    "build": "vite build",
     "backup": "node scripts/backup.js",
     "restore": "node scripts/restore.js",
-    "cache:clear:all": "node scripts/clear-cache.js"
+    "cache:clear:all": "node scripts/clear-cache.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "adm-zip": "^0.5.16",
@@ -30,6 +33,13 @@
     "marked-highlight": "^2.2.3",
     "redis": "^5.10.0",
     "satori": "^0.19.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
+    "tailwindcss": "^4.0.0",
+    "vite": "^7.3.1"
   },
   "repository": {
     "type": "git",

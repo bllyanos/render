@@ -1,8 +1,12 @@
-const fs = require('fs-extra');
-const path = require('path');
-const inquirer = require('inquirer');
-const AdmZip = require('adm-zip');
-const createBackup = require('./backup');
+import fs from 'fs-extra';
+import path from 'path';
+import inquirer from 'inquirer';
+import AdmZip from 'adm-zip';
+import createBackup from './backup.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function restore() {
   const pagesDir = path.join(__dirname, '../pages');
@@ -84,7 +88,11 @@ async function restore() {
   console.log('✨ Restoration complete!');
 }
 
-restore().catch(err => {
-  console.error('❌ Restoration failed:', err);
-  process.exit(1);
-});
+if (process.argv[1] === __filename) {
+  restore().catch(err => {
+    console.error('❌ Restoration failed:', err);
+    process.exit(1);
+  });
+}
+
+export default restore;

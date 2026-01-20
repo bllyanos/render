@@ -1,18 +1,43 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const { Marked } = require('marked');
-const { markedHighlight } = require('marked-highlight');
-const { gfmHeadingId } = require('marked-gfm-heading-id');
-const hljs = require('highlight.js');
-const matter = require('gray-matter');
-const satori = require('satori').default;
-const { Resvg } = require('@resvg/resvg-js');
-const { createClient } = require('redis');
-const basicAuth = require('express-basic-auth');
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
+import hljs from 'highlight.js';
+import matter from 'gray-matter';
+import satori from 'satori';
+import { Resvg } from '@resvg/resvg-js';
+import { createClient } from 'redis';
+import basicAuth from 'express-basic-auth';
+import hbs from 'hbs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 9901;
+
+// Vite Asset Helper
+const MANIFEST_PATH = path.join(__dirname, 'public/dist/.vite/manifest.json');
+function getAssetPath(name) {
+    try {
+        if (fs.existsSync(MANIFEST_PATH)) {
+            const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+            if (manifest[name]) {
+                return `/dist/${manifest[name].file}`;
+            }
+        }
+    } catch (e) {
+        console.error('Error reading manifest:', e);
+    }
+    return `/dist/${name}`; // Fallback
+}
+
+hbs.registerHelper('asset', function(name) {
+    return getAssetPath(name);
+});
 
 // Redis Setup
 const redisClient = createClient({
@@ -77,9 +102,7 @@ marked.use({
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
-const hbs = require('hbs');
 const pinColors = ['pin-teal', 'pin-orange', 'pin-lime', 'pin-yellow', 'pin-pink'];
-const hexColors = ['#2dd4bf', '#fb923c', '#bef264', '#fde047', '#f472b6'];
 
 function getTagHash(str) {
     let hash = 0;
@@ -205,7 +228,7 @@ app.get('/', async (req, res) => {
         query: req.query.q,
         baseUrl: req.baseUrl,
         ogUrl: req.baseUrl,
-        ogImage: `${req.baseUrl}/og-main.png`, // I should probably create a main OG image too or just use a default
+        ogImage: `${req.baseUrl}/og-main.png`,
         description: 'A lightweight Markdown renderer with a clean aesthetic.'
     });
 });
@@ -317,7 +340,6 @@ app.get('/og-main.png', async (req, res) => {
     }
 });
 
-// OG Image Route
 // OG Image Route
 app.get('/:slug/og.png', async (req, res) => {
     const slug = req.params.slug;
