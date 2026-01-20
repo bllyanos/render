@@ -10,7 +10,6 @@
 <!-- Sorting Controls -->
 <div class="mb-6">
     <div class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="font-bold opacity-75">Sort by:</span>
         <a href="/?sort=date_desc{{#if query}}&q={{query}}{{/if}}" 
            class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#unless sortType}}bg-teal-400{{/unless}}{{#if sortType}}{{#ifeq sortType 'date_desc'}}bg-teal-400{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}{{/if}}">
             Latest
