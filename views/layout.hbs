@@ -10,6 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 
         :root {
+            scroll-behavior: smooth;
             --bg-page: #fafaf9; /* stone-50 */
             --bg-surface: #f5f5f4; /* stone-100 */
             --border-color: #292524; /* stone-800 */
@@ -222,6 +223,54 @@
             outline: none;
             box-shadow: var(--shadow-primary);
             transform: translate(-2px, -2px);
+        }
+
+        /* Heading links */
+        .heading-link {
+            color: inherit !important;
+            text-decoration: none !important;
+            display: block;
+            position: relative;
+        }
+
+        .heading-link:hover {
+            text-decoration: underline !important;
+            background-color: transparent !important;
+        }
+
+        .anchor-icon {
+            position: absolute;
+            right: 100%;
+            padding-right: 0.5rem;
+            color: var(--text-primary);
+            opacity: 0;
+            font-weight: normal;
+            transition: opacity 0.2s;
+        }
+
+        h1:hover .anchor-icon,
+        h2:hover .anchor-icon,
+        h3:hover .anchor-icon,
+        h4:hover .anchor-icon,
+        h5:hover .anchor-icon,
+        h6:hover .anchor-icon {
+            opacity: 0.4;
+        }
+
+        .anchor-icon:hover {
+            opacity: 1 !important;
+        }
+
+        @media (max-width: 768px) {
+            .anchor-icon {
+                position: static;
+                opacity: 0.2;
+                margin-right: 0.5rem;
+            }
+            .heading-link {
+                display: flex;
+                align-items: baseline;
+            }
         }
     </style>
     <link rel="stylesheet" href="/hljs/styles/tokyo-night-dark.css">

@@ -3,13 +3,14 @@ const path = require('path');
 const fs = require('fs');
 const { Marked } = require('marked');
 const { markedHighlight } = require('marked-highlight');
+const { gfmHeadingId } = require('marked-gfm-heading-id');
 const hljs = require('highlight.js');
 const matter = require('gray-matter');
 
 const app = express();
 const port = 9901;
 
-// Configure Marked with highlighting
+// Configure Marked with highlighting and heading IDs
 const marked = new Marked(
   markedHighlight({
     emptyCheck: true,
@@ -25,6 +26,19 @@ const marked = new Marked(
     }
   })
 );
+
+marked.use(gfmHeadingId());
+
+// Inject anchor links into headings after they are rendered with IDs
+marked.use({
+  hooks: {
+    postprocess(html) {
+      // Wrap the entire heading content in a link
+      return html.replace(/<h([1-6]) id="([^"]+)">([\s\S]*?)<\/h\1>/g, 
+        '<h$1 id="$2"><a class="heading-link" href="#$2"><span class="anchor-icon">#</span>$3</a></h$1>');
+    }
+  }
+});
 
 // Setup Handlebars
 app.set('view engine', 'hbs');
