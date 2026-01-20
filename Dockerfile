@@ -10,6 +10,7 @@ RUN npm install --production
 
 # Copy the application logic
 COPY app.js ./
+COPY views/ ./views/
 
 # Expose the application port
 EXPOSE 9901

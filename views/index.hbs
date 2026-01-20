@@ -1,0 +1,17 @@
+<h1>Dashboard</h1>
+{{#if query}}
+    <p>Search results for: "<strong>{{query}}</strong>"</p>
+{{/if}}
+
+{{#if pages.length}}
+    <ul>
+        {{#each pages}}
+            <li>
+                <a href="/{{slug}}">{{title}}</a>
+                <small>({{date}})</small>
+            </li>
+        {{/each}}
+    </ul>
+{{else}}
+    <p>No pages found.</p>
+{{/if}}

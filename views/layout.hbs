@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Render</title>
+    <link rel="stylesheet" href="/css/github-markdown.css">
+    <link rel="stylesheet" href="/hljs/styles/github.css">
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+        @media (max-width: 767px) {
+            .markdown-body {
+                padding: 15px;
+            }
+        }
+        nav {
+            max-width: 980px;
+            margin: 20px auto;
+            padding: 0 45px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav a {
+            text-decoration: none;
+            color: #0366d6;
+        }
+        nav .search-box input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/"><strong>Render</strong></a>
+        <div class="search-box">
+            <form action="/" method="GET">
+                <input type="text" name="q" placeholder="Search pages..." value="{{query}}">
+            </form>
+        </div>
+    </nav>
+    <main class="markdown-body">
+        {{{body}}}
+    </main>
+</body>
+</html>

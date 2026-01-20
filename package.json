@@ -1,7 +1,7 @@
 {
   "name": "render",
   "version": "1.0.0",
-  "description": "",
+  "description": "Render is a lightweight Node.js application designed to serve and display Markdown files with a clean, GitHub-inspired aesthetic. It features a dynamic dashboard and full-text search capabilities.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,8 +14,17 @@
     "express": "^5.2.1",
     "github-markdown-css": "^5.8.1",
     "gray-matter": "^4.0.3",
+    "hbs": "^4.2.0",
     "highlight.js": "^11.11.1",
     "marked": "^17.0.1",
     "marked-highlight": "^2.2.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bllyanos/render.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bllyanos/render/issues"
+  },
+  "homepage": "https://github.com/bllyanos/render#readme"
 }

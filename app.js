@@ -1,6 +1,6 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 const { Marked } = require('marked');
 const { markedHighlight } = require('marked-highlight');
 const hljs = require('highlight.js');
@@ -8,146 +8,87 @@ const matter = require('gray-matter');
 
 const app = express();
 const port = 9901;
-const PAGES_DIR = path.join(__dirname, 'pages');
 
-// Initialize Marked with highlight.js
+// Configure Marked with highlighting
 const marked = new Marked(
-    markedHighlight({
-        langPrefix: 'hljs language-',
-        highlight(code, lang) {
-            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
-        }
-    })
+  markedHighlight({
+    emptyCheck: true,
+    langPrefix: 'hljs language-',
+    highlight(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    }
+  })
 );
 
-// Serve CSS from node_modules
-app.use('/css/github-markdown', express.static(path.join(__dirname, 'node_modules/github-markdown-css')));
-app.use('/css/highlight', express.static(path.join(__dirname, 'node_modules/highlight.js/styles')));
+// Setup Handlebars
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
 
-// Date formatter
-const formatDate = (date) => {
-    if (!date) return '';
-    return new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(new Date(date));
-};
+// Static files
+app.use('/css', express.static(path.join(__dirname, 'node_modules/github-markdown-css')));
+app.use('/hljs', express.static(path.join(__dirname, 'node_modules/highlight.js')));
 
-// Simple HTML wrapper for styling and navigation
-const wrapHtml = (content, title = 'Render') => `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>${title}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/css/github-markdown/github-markdown.css">
-    <link rel="stylesheet" href="/css/highlight/github.css">
-    <style>
-        body {
-            box-sizing: border-box;
-            min-width: 200px;
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 45px;
-        }
-        .markdown-body {
-            box-sizing: border-box;
-            min-width: 200px;
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 45px;
-        }
-        @media (max-width: 767px) {
-            .markdown-body {
-                padding: 15px;
-            }
-        }
-        nav {
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        nav a {
-            margin-right: 15px;
-            text-decoration: none;
-            color: #0366d6;
-        }
-        .search-box {
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body class="markdown-body">
-    <nav>
-        <a href="/">Home</a>
-    </nav>
-    ${content}
-</body>
-</html>
-`;
+const PAGES_DIR = path.join(__dirname, 'pages');
 
-// Dashboard route
-app.get('/', (req, res) => {
-    const query = (req.query.q || '').toLowerCase();
+// Helper to get all pages with metadata
+function getPages() {
+    if (!fs.existsSync(PAGES_DIR)) return [];
     
-    fs.readdir(PAGES_DIR, (err, files) => {
-        if (err) return res.status(500).send('Error reading pages directory');
-
-        const mdFiles = files.filter(f => f.endsWith('.md'));
-        const pages = mdFiles.map(file => {
-            const content = fs.readFileSync(path.join(PAGES_DIR, file), 'utf8');
+    return fs.readdirSync(PAGES_DIR)
+        .filter(file => file.endsWith('.md'))
+        .map(file => {
+            const filePath = path.join(PAGES_DIR, file);
+            const content = fs.readFileSync(filePath, 'utf8');
             const { data } = matter(content);
             return {
                 slug: file.replace('.md', ''),
                 title: data.title || file,
-                date: data.date || '',
-                content: content.toLowerCase()
+                date: data.date ? new Date(data.date).toLocaleDateString() : 'N/A',
+                rawContent: content // for searching
             };
         });
+}
 
-        const filteredPages = pages.filter(p => 
-            p.title.toLowerCase().includes(query) || 
-            p.slug.toLowerCase().includes(query) ||
-            p.content.includes(query)
+// Dashboard Route
+app.get('/', (req, res) => {
+    const query = req.query.q ? req.query.q.toLowerCase() : '';
+    let pages = getPages();
+
+    if (query) {
+        pages = pages.filter(page => 
+            page.title.toLowerCase().includes(query) || 
+            page.rawContent.toLowerCase().includes(query)
         );
+    }
 
-        let htmlContent = `
-            <h1>Render Dashboard</h1>
-            <div class="search-box">
-                <form action="/" method="GET">
-                    <input type="text" name="q" placeholder="Search pages..." value="${req.query.q || ''}">
-                    <button type="submit">Search</button>
-                </form>
-            </div>
-            <ul>
-                ${filteredPages.map(p => `
-                    <li>
-                        <a href="/${p.slug}">${p.title}</a> ${p.date ? `<small>(${formatDate(p.date)})</small>` : ''}
-                    </li>
-                `).join('')}
-            </ul>
-        `;
-
-        if (filteredPages.length === 0) {
-            htmlContent += '<p>No pages found matching your search.</p>';
-        }
-
-        res.send(wrapHtml(htmlContent));
+    res.render('index', {
+        title: 'Dashboard',
+        pages,
+        query: req.query.q
     });
 });
 
-// Page renderer route
+// Page Route
 app.get('/:slug', (req, res) => {
-    const filePath = path.join(PAGES_DIR, `${req.params.slug}.md`);
+    const slug = req.params.slug;
+    const filePath = path.join(PAGES_DIR, `${slug}.md`);
 
     if (!fs.existsSync(filePath)) {
-        return res.status(404).send(wrapHtml('<h1>404 Page Not Found</h1>'));
+        return res.status(404).render('page', {
+            title: '404 Not Found',
+            content: '<h1>404 - Page Not Found</h1><p>The requested page does not exist.</p>'
+        });
     }
 
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const { data, content } = matter(fileContent);
-    const htmlBody = marked.parse(content);
-    
-    res.send(wrapHtml(htmlBody, data.title));
+    const htmlContent = marked.parse(content);
+
+    res.render('page', {
+        title: data.title || slug,
+        content: htmlContent
+    });
 });
 
 app.listen(port, () => {

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speeding up Archlinux Upgrade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-page: #fafaf9; /* stone-50 */
+            --bg-surface: #f5f5f4; /* stone-100 */
+            --border-color: #000000; /* Strict Black */
+            --text-primary: #0f766e; /* teal-700 */
+            --text-secondary: #c2410c; /* orange-700 */
+            --text-accent: #3f6212; /* lime-800 */
+            --shadow-primary: 2px 2px 0px 0px rgba(0,0,0,1);
+            --radius-md: 0.375rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #0c0a09; /* stone-950 */
+                --bg-surface: #1c1917; /* stone-900 */
+                --border-color: #000000;
+                --text-primary: #2dd4bf; /* teal-400 */
+                --text-secondary: #fb923c; /* orange-400 */
+                --text-accent: #bef264; /* lime-300 */
+            }
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-page);
+            color: #1c1917;
+            line-height: 1.7;
+        }
+
+        .dark body {
+            color: #d6d3d1;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* The Soft-Boxy styling for code/tips */
+        .content-box {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-surface);
+            box-shadow: var(--shadow-primary);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .command-block {
+            background-color: #1c1917;
+            color: #e7e5e4;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        .inline-code {
+            font-weight: 700;
+            color: var(--text-secondary);
+            background: rgba(0,0,0,0.05);
+            padding: 0.1em 0.3em;
+            border-radius: 0.2em;
+        }
+
+        a {
+            color: var(--text-primary);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 2px;
+        }
+        
+        a:hover {
+            background-color: var(--text-primary);
+            color: var(--bg-page);
+            text-decoration: none;
+        }
+
+        .meta-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+
+    <article class="max-w-3xl mx-auto">
+        
+        <!-- Blog Header -->
+        <header class="mb-10 pb-10 border-b-2 border-black">
+            <div class="mb-4 flex gap-2">
+                <span class="meta-tag bg-white dark:bg-stone-800">Arch Linux</span>
+                <span class="meta-tag bg-white dark:bg-stone-800">Tutorial</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl mb-4 leading-tight">
+                Speeding up Archlinux Upgrade
+            </h1>
+            <p class="text-xl opacity-75 font-normal">
+                Why your firmware downloads crawl while everything else flies, and how to fix it.
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <p>
+                We've all been there. You run <span class="inline-code">pacman -Syu</span> and watch happily as small packages download instantly. Then, the process hits <span class="inline-code">linux-firmware</span> or <span class="inline-code">linux-firmware-intel</span>, and suddenly your speed drops to 50KB/s.
+            </p>
+
+            <p>
+                This is a common frustration, specifically for users in regions like Indonesia where international routing can be inconsistent. You might suspect your DNS is acting up, but the reality is usually simpler—and easier to fix.
+            </p>
+
+            <h2 class="text-2xl mt-8 mb-4">Why is it only the firmware?</h2>
+            
+            <p>
+                It’s not your DNS. If the download starts at all, your DNS has already done its job. The issue is likely the <strong>mirror</strong> you are connected to.
+            </p>
+            
+            <p>
+                Firmware packages are "binary blobs"—large, monolithic files (often 150MB+). While a slow mirror might deliver a 1MB utility file fast enough that you don't notice the lag, a massive firmware file exposes every bottleneck in the connection. If you're pulling from a mirror with poor peering to your ISP, that specific file will crawl.
+            </p>
+
+            <h2 class="text-2xl mt-8 mb-4">The Solution</h2>
+            
+            <p>
+                Here is the reliable, three-step method to fix slow downloads and optimize your Arch mirror list.
+            </p>
+
+            <!-- Step 1 -->
+            <div class="content-box">
+                <h3 class="text-lg font-bold text-teal-700 dark:text-teal-400 mb-2 flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-5 h-5"></i> 1. Install Dependencies
+                </h3>
+                <p class="text-sm mb-3">
+                    We will use a tool called <strong>Reflector</strong> to find the fastest mirrors. It requires <span class="inline-code">rsync</span> to accurately test download speeds.
+                </p>
+                <div class="command-block">sudo pacman -S rsync reflector</div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="content-box">
+                <h3 class="text-lg font-bold text-teal-700 dark:text-teal-400 mb-2 flex items-center gap-2">
+                    <i data-lucide="globe" class="w-5 h-5"></i> 2. Update Your Mirrorlist
+                </h3>
+                <p class="text-sm mb-3">
+                    If you are in Indonesia, relying solely on local mirrors can sometimes be unstable for large files. The pro-tip is to include <strong>Singapore</strong> mirrors, which often have better bandwidth and reliability.
+                </p>
+                <div class="command-block">sudo reflector --country Indonesia,Singapore --latest 20 --sort rate --save /etc/pacman.d/mirrorlist</div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="content-box">
+                <h3 class="text-lg font-bold text-teal-700 dark:text-teal-400 mb-2 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5"></i> 3. Enable Parallel Downloads
+                </h3>
+                <p class="text-sm mb-3">
+                    This is the game changer. By default, Pacman downloads one file at a time. If that one file (like firmware) is slow, the whole update stops. Enabling parallel downloads lets Pacman grab 5 files at once.
+                </p>
+                <div class="command-block">
+                    # Open /etc/pacman.conf and uncomment:<br>
+                    ParallelDownloads = 5
+                </div>
+            </div>
+
+            <p class="mt-8">
+                Once you've applied these changes, run <span class="inline-code">sudo pacman -Syu</span> again. You should see a significant improvement in speed, and the dreaded firmware stall should be a thing of the past.
+            </p>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-16 pt-8 border-t-2 border-black flex justify-between items-center opacity-60">
+            <div class="text-xs font-bold uppercase tracking-widest">
+                Written by Arch_Helper
+            </div>
+            <div class="text-xs font-bold uppercase tracking-widest">
+                Updated 2024
+            </div>
+        </footer>
+
+    </article>
+
+    <script>
+        lucide.createIcons({
+            attrs: {
+                'stroke-width': 2
+            }
+        });
+    </script>
+</body>
+</html>
