@@ -26,7 +26,18 @@
 
     <link rel="stylesheet" href="{{asset 'src/style.css'}}">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/hljs/styles/tokyo-night-dark.css">
+    <link id="hljs-theme" rel="stylesheet" href="/hljs/styles/tokyo-night-dark.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'system';
+            const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
 </head>
 <body class="p-4 md:p-12">
 
@@ -40,15 +51,37 @@
                     RENDER
                 </a>
             </div>
-            <div class="w-full md:w-64">
-                <form action="/" method="GET">
-                    <div class="relative">
-                        <input type="text" name="q" placeholder="Search..." value="{{query}}" class="search-input text-sm">
-                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2">
-                            <i data-lucide="search" class="w-4 h-4 opacity-50"></i>
+            <div class="w-full md:w-auto flex items-center gap-4">
+                <div class="relative group">
+                    <button id="theme-toggle" class="border-2 border-main p-2 rounded-brutal bg-bg-surface shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center" title="Toggle theme">
+                        <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+                        <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
+                    </button>
+                    <div id="theme-menu" class="hidden absolute right-0 mt-2 w-32 border-2 border-main rounded-brutal bg-bg-surface shadow-brutal z-50 overflow-hidden">
+                        <button data-theme="light" class="theme-menu-item w-full text-left px-4 py-2 text-sm font-bold hover:bg-teal-700 hover:text-white transition-colors flex items-center justify-between gap-2">
+                            <span class="flex items-center gap-2"><i data-lucide="sun" class="w-4 h-4"></i> Light</span>
+                            <i data-lucide="check" class="w-4 h-4 check-icon hidden"></i>
+                        </button>
+                        <button data-theme="dark" class="theme-menu-item w-full text-left px-4 py-2 text-sm font-bold hover:bg-teal-700 hover:text-white transition-colors border-t-2 border-main flex items-center justify-between gap-2">
+                            <span class="flex items-center gap-2"><i data-lucide="moon" class="w-4 h-4"></i> Dark</span>
+                            <i data-lucide="check" class="w-4 h-4 check-icon hidden"></i>
+                        </button>
+                        <button data-theme="system" class="theme-menu-item w-full text-left px-4 py-2 text-sm font-bold hover:bg-teal-700 hover:text-white transition-colors border-t-2 border-main flex items-center justify-between gap-2">
+                            <span class="flex items-center gap-2"><i data-lucide="monitor" class="w-4 h-4"></i> System</span>
+                            <i data-lucide="check" class="w-4 h-4 check-icon hidden"></i>
                         </button>
                     </div>
-                </form>
+                </div>
+                <div class="w-full md:w-64">
+                    <form action="/" method="GET">
+                        <div class="relative">
+                            <input type="text" name="q" placeholder="Search..." value="{{query}}" class="search-input text-sm">
+                            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2">
+                                <i data-lucide="search" class="w-4 h-4 opacity-50"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </header>
 
@@ -77,6 +110,66 @@
         lucide.createIcons({
             attrs: {
                 'stroke-width': 2
+            }
+        });
+
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeMenu = document.getElementById('theme-menu');
+        const themeButtons = document.querySelectorAll('[data-theme]');
+
+        themeToggle.addEventListener('click', () => {
+            themeMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!themeToggle.contains(e.target) && !themeMenu.contains(e.target)) {
+                themeMenu.classList.add('hidden');
+            }
+        });
+
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            // Update active state in menu
+            document.querySelectorAll('.theme-menu-item').forEach(item => {
+                const check = item.querySelector('.check-icon');
+                if (item.dataset.theme === theme) {
+                    item.classList.add('bg-stone-100', 'dark:bg-stone-800');
+                    if (check) check.classList.remove('hidden');
+                } else {
+                    item.classList.remove('bg-stone-100', 'dark:bg-stone-800');
+                    if (check) check.classList.add('hidden');
+                }
+            });
+
+            themeMenu.classList.add('hidden');
+        }
+
+        // Initialize menu active state
+        setTheme(localStorage.getItem('theme') || 'system');
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTheme(btn.dataset.theme);
+            });
+        });
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
+                if (e.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             }
         });
     </script>

@@ -11,19 +11,19 @@
 <div class="mb-6">
     <div class="flex flex-wrap items-center gap-2 text-sm">
         <a href="/?sort=date_desc{{#if query}}&q={{query}}{{/if}}" 
-           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#unless sortType}}bg-teal-400{{/unless}}{{#if sortType}}{{#ifeq sortType 'date_desc'}}bg-teal-400{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}{{/if}}">
+           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#unless sortType}}bg-teal-400 text-stone-900{{/unless}}{{#if sortType}}{{#ifeq sortType 'date_desc'}}bg-teal-400 text-stone-900{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}{{/if}}">
             Latest
         </a>
         <a href="/?sort=date_asc{{#if query}}&q={{query}}{{/if}}" 
-           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#ifeq sortType 'date_asc'}}bg-teal-400{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}">
+           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#ifeq sortType 'date_asc'}}bg-teal-400 text-stone-900{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}">
             Oldest
         </a>
         <a href="/?sort=title_asc{{#if query}}&q={{query}}{{/if}}" 
-           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#ifeq sortType 'title_asc'}}bg-teal-400{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}">
+           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#ifeq sortType 'title_asc'}}bg-teal-400 text-stone-900{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}">
             Title A-Z
         </a>
         <a href="/?sort=title_desc{{#if query}}&q={{query}}{{/if}}" 
-           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#ifeq sortType 'title_desc'}}bg-teal-400{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}">
+           class="px-3 py-1 rounded-brutal border-2 border-stone-900 dark:border-stone-100 transition-all hover:translate-x-0.5 hover:-translate-y-0.5 {{#ifeq sortType 'title_desc'}}bg-teal-400 text-stone-900{{else}}bg-stone-100 dark:bg-stone-800{{/ifeq}}">
             Title Z-A
         </a>
     </div>
