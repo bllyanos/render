@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
 
 :root {
     scroll-behavior: smooth;
@@ -90,9 +90,9 @@ h1, h2, h3 {
     border-top: 2px solid var(--border-color);
     margin: 2rem 0;
 }
-.markdown-content h1 { font-size: 2.25rem; margin-bottom: 1.5rem; line-height: 1.2; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
-.markdown-content h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
-.markdown-content h3 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+.markdown-content h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; line-height: 1.2; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+.markdown-content h2 { font-size: 1.5rem; font-weight: 800; margin-top: 2rem; margin-bottom: 1rem; }
+.markdown-content h3 { font-size: 1.25rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; }
 .markdown-content p { margin-bottom: 1.5rem; }
 .markdown-content ul, .markdown-content ol { margin-bottom: 1.5rem; padding-left: 1.5rem; }
 .markdown-content ul { list-style-type: disc; }
