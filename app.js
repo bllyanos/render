@@ -152,7 +152,13 @@ function getPages() {
                 slug: file.replace('.md', ''),
                 title: data.title || file,
                 description: data.description || '',
-                date: data.date ? new Date(data.date).toLocaleDateString() : 'N/A',
+                date: data.date ? new Date(data.date).toLocaleString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'N/A',
                 rawDate: data.date || null, // Keep raw date for sorting
                 priority: typeof data.priority === 'number' ? data.priority : 0,
                 tags: data.tags || [],
@@ -583,7 +589,13 @@ app.get('/:slug', async (req, res) => {
 
     res.render('page', {
         title: data.title || slug,
-        date: data.date ? new Date(data.date).toLocaleDateString() : null,
+        date: data.date ? new Date(data.date).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }) : null,
         tags: data.tags || [],
         description: data.description || '',
         content: htmlContent,
