@@ -53,6 +53,35 @@ date: 2026-01-20
 This is an example of a rendered page.
 ```
 
+## Data Management
+
+Render includes built-in scripts to help you backup and restore your Markdown content.
+
+### Backup
+
+To create a backup of your `pages/` directory:
+
+```bash
+npm run backup
+```
+
+This will:
+1. Prompt you for an optional note.
+2. Create a timestamped ZIP file in the `backups/` directory (e.g., `backup_YYYY-MM-DDTHH-mm-ss_note.zip`).
+
+### Restore
+
+To restore your content from a previous backup:
+
+```bash
+npm run restore
+```
+
+This will:
+1. List available backups from the `backups/` directory.
+2. Ask if you want to create a safety backup of your current content.
+3. Overwrite the `pages/` directory with the contents of the selected backup.
+
 ## Project Structure
 
 - `app.js`: The main Express server logic and rendering engine.
