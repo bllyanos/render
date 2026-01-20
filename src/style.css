@@ -293,6 +293,9 @@
   .border-main {
     border-color: var(--color-border-main) !important;
   }
+  .rounded-brutal {
+    border-radius: var(--radius-brutal) !important;
+  }
 }
 
 @media (max-width: 768px) {
