@@ -244,6 +244,15 @@ app.post('/__admin/cache/clear-pages', async (req, res) => {
     }
 });
 
+app.post('/__admin/cache/clear-all', async (req, res) => {
+    try {
+        await redisClient.flushDb();
+        res.redirect('/__admin/cache');
+    } catch (err) {
+        res.status(500).send('Error clearing all cache: ' + err.message);
+    }
+});
+
 
 // Dashboard Route
 app.get('/', async (req, res) => {

@@ -5,7 +5,7 @@
 - **Server**: `express` (handling routes, middleware, and admin auth)
 - **Templating**: `hbs` (Handlebars) for dynamic HTML rendering
 - **Markdown Engine**: `marked` with `marked-highlight`, `marked-gfm-heading-id`, and custom anchor hooks
-- **Metadata**: `gray-matter` for parsing front-matter (title, description, date, tags, priority)
+- **Metadata**: `gray-matter` for parsing front-matter (title, description, date, tags, priority). **Note**: Titles must be under 40 characters.
 - **Caching**: `redis` for high-performance caching of the dashboard index and rendered pages
 - **Styling**: `github-markdown-css` + `Tailwind CSS` + `Vite` for asset bundling
 - **Visuals**: `satori` and `@resvg/resvg-js` for dynamic OG image generation
