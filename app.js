@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -40,20 +41,28 @@ hbs.registerHelper('asset', function(name) {
 });
 
 // Redis Setup
+const CACHE_DURATION_MINUTES = process.env.CACHE_DURATION_MINUTES;
+const CACHE_TTL = parseInt(CACHE_DURATION_MINUTES) * 60;
+const ENABLE_CACHE = !isNaN(CACHE_TTL) && CACHE_TTL > 0;
+
 const redisClient = createClient({
     url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
+if (ENABLE_CACHE) {
+    redisClient.on('error', (err) => console.log('Redis Client Error', err));
 
-(async () => {
-    try {
-        await redisClient.connect();
-        console.log('Connected to Redis');
-    } catch (err) {
-        console.error('Failed to connect to Redis', err);
-    }
-})();
+    (async () => {
+        try {
+            await redisClient.connect();
+            console.log(`Connected to Redis (Cache enabled: ${CACHE_DURATION_MINUTES} min)`);
+        } catch (err) {
+            console.error('Failed to connect to Redis', err);
+        }
+    })();
+} else {
+    console.log('Redis cache is disabled (CACHE_DURATION_MINUTES is not set or invalid)');
+}
 
 // Admin Auth Middleware
 const adminAuth = basicAuth({
@@ -212,11 +221,14 @@ app.get('/__admin/cache', (req, res) => {
         title: 'Cache Admin',
         baseUrl: req.baseUrl,
         ogUrl: `${req.baseUrl}/__admin/cache`,
-        description: 'Manage application cache'
+        description: 'Manage application cache',
+        cacheEnabled: ENABLE_CACHE,
+        cacheDuration: CACHE_DURATION_MINUTES
     });
 });
 
 app.post('/__admin/cache/clear-index', async (req, res) => {
+    if (!ENABLE_CACHE) return res.redirect('/__admin/cache');
     try {
         await redisClient.del('render:index');
         res.redirect('/__admin/cache');
@@ -226,6 +238,7 @@ app.post('/__admin/cache/clear-index', async (req, res) => {
 });
 
 app.post('/__admin/cache/clear-pages', async (req, res) => {
+    if (!ENABLE_CACHE) return res.redirect('/__admin/cache');
     try {
         // Scan for all page keys
         let cursor = '0';
@@ -245,6 +258,7 @@ app.post('/__admin/cache/clear-pages', async (req, res) => {
 });
 
 app.post('/__admin/cache/clear-all', async (req, res) => {
+    if (!ENABLE_CACHE) return res.redirect('/__admin/cache');
     try {
         await redisClient.flushDb();
         res.redirect('/__admin/cache');
@@ -260,19 +274,22 @@ app.get('/', async (req, res) => {
     const sortType = req.query.sort || 'date_desc';
     let pages;
 
-    try {
-        const cachedIndex = await redisClient.get('render:index');
-        if (cachedIndex) {
-            console.log('Cache hit for index');
-            pages = JSON.parse(cachedIndex);
-        } else {
-            console.log('Cache miss for index');
+    if (ENABLE_CACHE) {
+        try {
+            const cachedIndex = await redisClient.get('render:index');
+            if (cachedIndex) {
+                console.log('Cache hit for index');
+                pages = JSON.parse(cachedIndex);
+            } else {
+                console.log('Cache miss for index');
+                pages = getPages();
+                await redisClient.set('render:index', JSON.stringify(pages), { EX: CACHE_TTL });
+            }
+        } catch (err) {
+            console.error('Redis error:', err);
             pages = getPages();
-            // Cache for 1 hour
-            await redisClient.set('render:index', JSON.stringify(pages), { EX: 3600 });
         }
-    } catch (err) {
-        console.error('Redis error:', err);
+    } else {
         pages = getPages();
     }
 
@@ -569,15 +586,17 @@ app.get('/:slug', async (req, res) => {
     const slug = req.params.slug;
     
     // Try cache first
-    try {
-        const cachedPage = await redisClient.get(`render:page:${slug}`);
-        if (cachedPage) {
-            console.log(`Cache hit for page: ${slug}`);
-            return res.send(cachedPage);
+    if (ENABLE_CACHE) {
+        try {
+            const cachedPage = await redisClient.get(`render:page:${slug}`);
+            if (cachedPage) {
+                console.log(`Cache hit for page: ${slug}`);
+                return res.send(cachedPage);
+            }
+            console.log(`Cache miss for page: ${slug}`);
+        } catch (err) {
+            console.error('Redis error:', err);
         }
-        console.log(`Cache miss for page: ${slug}`);
-    } catch (err) {
-        console.error('Redis error:', err);
     }
 
     const filePath = path.join(PAGES_DIR, `${slug}.md`);
@@ -616,11 +635,12 @@ app.get('/:slug', async (req, res) => {
             return res.status(500).send('Error rendering page');
         }
         
-        try {
-            // Cache for 24 hours
-            await redisClient.set(`render:page:${slug}`, html, { EX: 86400 });
-        } catch (cacheErr) {
-            console.error('Failed to cache page:', cacheErr);
+        if (ENABLE_CACHE) {
+            try {
+                await redisClient.set(`render:page:${slug}`, html, { EX: CACHE_TTL });
+            } catch (cacheErr) {
+                console.error('Failed to cache page:', cacheErr);
+            }
         }
         
         res.send(html);

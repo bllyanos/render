@@ -1,9 +1,26 @@
 <div class="mb-8">
     <h1 class="text-4xl font-black uppercase mb-2">Cache Administration</h1>
-    <p class="text-xl opacity-75">Manage your application cache.</p>
+    <div class="flex items-center gap-4">
+        <p class="text-xl opacity-75">Manage your application cache.</p>
+        <div class="px-3 py-1 border-2 border-black rounded-full text-xs font-bold uppercase tracking-widest {{#if cacheEnabled}}bg-green-400{{else}}bg-red-400{{/if}} shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            {{#if cacheEnabled}}Enabled ({{cacheDuration}}m TTL){{else}}Disabled{{/if}}
+        </div>
+    </div>
 </div>
 
-<div class="grid gap-6">
+{{#unless cacheEnabled}}
+<div class="mb-8 p-6 border-2 border-black rounded-brutal bg-yellow-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <div class="flex items-center gap-3">
+        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+        <div>
+            <h3 class="font-bold uppercase text-lg">Caching is currently disabled</h3>
+            <p class="font-medium">To enable caching, set <code class="bg-white/50 px-1 rounded">CACHE_DURATION_MINUTES</code> to a value greater than 0 in your <code class="bg-white/50 px-1 rounded">.env</code> file.</p>
+        </div>
+    </div>
+</div>
+{{/unless}}
+
+<div class="grid gap-6 {{#unless cacheEnabled}}opacity-50 pointer-events-none{{/unless}}">
     <div class="border-2 border-main rounded-brutal p-6 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] bg-white dark:bg-stone-900 dark:border-stone-100 dark:shadow-[4px_4px_0px_0px_rgba(231,229,228,1)]">
         <div class="flex items-center gap-3 mb-4">
             <i data-lucide="zap" class="w-6 h-6 text-red-600"></i>

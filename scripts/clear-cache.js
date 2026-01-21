@@ -1,9 +1,16 @@
+import 'dotenv/config';
 import { createClient } from 'redis';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 
 async function clearCache() {
+  const CACHE_DURATION_MINUTES = process.env.CACHE_DURATION_MINUTES;
+  if (!CACHE_DURATION_MINUTES || isNaN(parseInt(CACHE_DURATION_MINUTES)) || parseInt(CACHE_DURATION_MINUTES) <= 0) {
+    console.log('ℹ️ Caching is disabled (CACHE_DURATION_MINUTES is not set or <= 0). Skipping clear-cache.');
+    return;
+  }
+
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
   console.log(`🔌 Connecting to Redis at ${redisUrl}...`);
 
